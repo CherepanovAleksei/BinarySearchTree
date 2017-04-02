@@ -1,33 +1,28 @@
 /**
  * Created by Алексей
  */
-import java.io.File
-import java.io.FileNotFoundException
-
-
-//import javax.print.attribute.IntegerSyntax
 
 interface Tree<K: Comparable <K>, V> {
     var root: Node<K, V>?
     fun insert(newNode: Node<K, V>)
-    fun delete(key:Int)
+    fun delete(delNode: Node<K, V>)
     fun leftRotate(x: Node<K,V>?)
     fun rightRotate(x: Node<K,V>?)
-    fun search(node: Node<K,V>?/*=root*/, key: K): Node<K,V>?
+    fun search(node: Node<K,V>?, key: K): Node<K,V>?
     fun searchMin(node: Node<K, V>?=root): Node<K, V>?
     fun searchMax(node: Node<K, V>?=root): Node<K, V>?
-    fun display(node: Node<K,V>?, n:Int)
 }
 
 class Node<K: Comparable<K>, V>(var key:K,var value:V,var color:Boolean=false){
     var left: Node<K,V>? = null
     var right: Node<K,V>? = null
     var parent: Node<K,V>? = null
+
     fun height(): Int {
-        var current = this
+        var thisNode = this
         var count = 0
-        while (current.parent != null) {
-            current = current.parent!!
+        while (thisNode.parent != null) {
+            thisNode = thisNode.parent!!
             count++
         }
         return count
@@ -42,17 +37,19 @@ class Node<K: Comparable<K>, V>(var key:K,var value:V,var color:Boolean=false){
 }
 
 class logic<K: Comparable<K>, V> {
-    fun print(node: Node<K, V?>) {
-        if (node == null) return
-
+    fun display(node: Node<K, V>) {
         for (i in 1..node.height())
-            print(" |")
-        when {
-            node.color -> println(27.toChar() + "[31m${node.key }" + node.value + 27.toChar() + "[0m")
-            else -> println(27.toChar() + "[30m${node.key}" + node.value + 27.toChar() + "[0m")
+            print("    |")
+
+        if(node.color) {
+            println(27.toChar() + "[31m${node.key}" + '(' + node.value + ')' + 27.toChar() + "[0m")
+        }else {
+            println(27.toChar() + "[30m${node.key}" + '(' + node.value + ')' + 27.toChar() + "[0m")
         }
+
     }
 }
+
 
 /*
 class BinarySearchTree: Tree{
@@ -111,47 +108,13 @@ class BinarySearchTree: Tree{
 */
 class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<Node<K, V>>{
     override var root: Node<K,V>? = null
-    override fun iterator(): Iterator<Node<K, V>> {
-        return (object : Iterator<Node<K, V>> {
-            var node = searchMax()
-            var next = searchMax()
-            val last = searchMin()
-
-            override fun hasNext(): Boolean {
-                return (node != null) && (node!!.key >= last!!.key)
-            }
-
-            override fun next(): Node<K, V> {
-                next = node
-                node = nextSmaller(node)
-                return next!!
-            }
-        })
-    }
-
-    fun nextSmaller(node: Node<K, V>?): Node<K, V>?{
-        var smaller = node
-        if(node==null) return null
-//nil?? var smaller = node ?: return null
-        when {
-            (smaller?.left != null) -> {
-                return searchMax(smaller.left)
-            }
-            (smaller == smaller?.parent?.left) -> {
-                while (smaller == smaller?.parent?.left) {
-                    smaller = smaller?.parent!!
-                }
-            }
-        }
-        return smaller?.parent
-    }
 
     override fun insert(newNode: Node<K, V>){
         var y:Node<K,V>?=null
         var x:Node<K,V>?=this.root
         while (x!=null){
             y=x
-            if(newNode.key < x!!.key) x= x.left else x=x.right
+            if(newNode.key < x.key) x= x.left else x=x.right
         }
         newNode.parent=y
         if(y==null) {
@@ -159,7 +122,7 @@ class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<Node<K, V>>{
             this.root=newNode
             //this.root!!.parent=nil
         }
-        else if(newNode.key<y!!.key){
+        else if(newNode.key<y.key){
             y.left=newNode
         }
         else{
@@ -179,7 +142,7 @@ class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<Node<K, V>>{
                 y=z.parent!!.parent!!.right
                 if(y?.color ==true){
                     z.parent!!.color=false
-                    y?.color=false
+                    y.color=false
                     z.parent!!.parent!!.color=true
                     z=z.parent!!.parent
                 }else if(z== z.parent!!.right){
@@ -194,7 +157,7 @@ class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<Node<K, V>>{
                 y= z.parent?.parent?.left
                 if(y?.color==true){
                     z.parent!!.color=false
-                    y?.color=false
+                    y.color=false
                     z.parent!!.parent!!.color=true
                     z=z.parent!!.parent
                 }else if(z== z.parent!!.left){
@@ -210,10 +173,131 @@ class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<Node<K, V>>{
         this.root!!.color=false
     }
 
-    override fun leftRotate(x: Node<K,V>?){ //node.right!=nil
-        var y:Node<K,V>?= x?.right
+    override fun delete(delNode: Node<K, V>) {
+        val x = searchMax(delNode.left)
+
+        when {
+            ((delNode.right != null) && (delNode.left != null))
+            -> {
+                delNode.key = x!!.key
+                delNode.value = x.value
+                delete(x)
+                return
+            }
+            ((delNode == this.root) && delNode.isLeaf())
+            -> {
+                this.root = null
+                return
+            }
+            (delNode.color && delNode.isLeaf())
+            -> {
+                if (delNode == delNode.parent!!.left) {
+                    delNode.parent!!.left = null
+                }else{
+                    delNode.parent!!.right = null
+                }
+                return
+            }
+            (!delNode.color && delNode.left != null && delNode.left!!.color)
+            -> {
+                delNode.key = delNode.left!!.key
+                delNode.value = delNode.left!!.value
+                delNode.left = null
+                return
+            }
+            (!delNode.color && delNode.right != null && delNode.right!!.color)
+            -> {
+                delNode.key = delNode.right!!.key
+                delNode.value = delNode.right!!.value
+                delNode.right = null
+                return
+            }
+            else
+            -> {
+                deleteCase1(delNode)
+            }
+        }
+        if (delNode == delNode.parent!!.left) {
+            delNode.parent!!.left = null
+        }else{
+            delNode.parent!!.right = null
+        }
+    }
+
+    private fun deleteCase1(node: Node<K, V>) {
+        if (node.parent != null) deleteCase2(node)
+    }
+
+    private fun deleteCase2(node: Node<K, V>) {
+        val brother = node.brother()
+
+        if (brother!!.color) {
+            when (node) {
+                node.parent!!.left -> leftRotate(node.parent!!)
+                node.parent!!.right -> rightRotate(node.parent!!)
+            }
+
+            if (root == node.parent)
+                root = node.parent!!.parent
+        }
+        deleteCase3(node)
+    }
+
+    private fun deleteCase3(node: Node<K, V>) {
+        val brother = node.brother()
+
+        if (((brother!!.left == null) || !brother.left!!.color) && ((brother.right == null) || !brother.right!!.color) && !brother.color && !node.parent!!.color) {
+            brother.color = true
+            deleteCase1(node.parent!!)
+        }
+        else {
+            deleteCase4(node)
+        }
+    }
+
+    private fun deleteCase4(node: Node<K, V>) {
+        val brother = node.brother()
+
+        if (((brother!!.left == null) || !brother.left!!.color) && ((brother.right == null) || !brother.right!!.color) && !brother.color && node.parent!!.color) {
+            brother.color = true
+            node.parent!!.color = false
+        }
+        else deleteCase5(node)
+    }
+
+    private fun deleteCase5(node: Node<K, V>) {
+        val brother = node.brother()
+
+        if (brother?.color == false) {
+            if (brother.left?.color == true && (brother.right == null || !brother.right!!.color) && node == node.parent?.left) {
+                rightRotate(brother)
+            }
+            else if (brother.right?.color == true && (brother.left == null || !brother.left!!.color) && node == node.parent?.right) {
+                leftRotate(brother)
+            }
+        }
+        deleteCase6(node)
+    }
+
+    private fun deleteCase6(node: Node<K, V>) {
+        val brother = node.brother()
+
+        if (node == node.parent!!.left) {
+            brother?.right?.color = false
+            leftRotate(node.parent)
+        }
+        else {
+            brother?.left?.color = false
+            rightRotate(node.parent)
+        }
+
+        if (root == node.parent)
+            root = node.parent!!.parent
+    }
+
+    override fun leftRotate(x: Node<K,V>?){
+        val y:Node<K,V>?= x?.right
         x?.right= y?.left
-        //if(y?.left!=nil)
         y?.left?.parent=x
         y?.parent =x?.parent
         if(x?.parent==null){
@@ -229,17 +313,16 @@ class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<Node<K, V>>{
         x?.parent=y
     }
 
-    override fun rightRotate(x: Node<K,V>?){ //node.left!=nil
-        var y:Node<K,V>?= x!!.left
+    override fun rightRotate(x: Node<K,V>?){
+        val y:Node<K,V>?= x!!.left
         x.left= y!!.right
-        //if(x.right!=nil)
         y.right?.parent=x
         y.parent=x.parent
         if(x.parent==null){
             this.root=y
         }
-        if(x==x.parent!!.right){
-            x.parent!!.right=y
+        if(x==x.parent?.right){
+            x.parent?.right=y
         }
         if(x==x.parent?.left){
             x.parent!!.left=y
@@ -250,15 +333,15 @@ class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<Node<K, V>>{
 
     override fun search(node: Node<K,V>?, key: K): Node<K,V>? {
         if(node==null) return null
-        if(key== node?.key)return node
-        if(key.equals(node?.key)) return search(node?.left,key)
-        else return search(node?.right, key)
+        if(key== node.key)return node
+        if(key == node.key) return search(node.left,key)
+        else return search(node.right, key)
     }
 
     override fun searchMax(node: Node<K, V>?): Node<K, V>? {
         var max = node
-        while (max?.left != null) {
-            max = max?.left
+        while (max?.right != null) {
+            max = max.right
         }
         return max
     }
@@ -266,41 +349,48 @@ class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<Node<K, V>>{
     override fun searchMin(node: Node<K, V>?): Node<K, V>? {
         var min = node
         while (min?.left != null) {
-            min = min?.left
+            min = min.left
         }
         return min
     }
-    override fun delete(key:Int){
 
+    override fun iterator(): Iterator<Node<K, V>> {
+        return (object : Iterator<Node<K, V>> {
+            var node = searchMax()
+            var next = searchMax()
+            val last = searchMin()
+
+            override fun hasNext(): Boolean {
+                return (node != null) && (node!!.key >= last!!.key)
+            }
+
+            override fun next(): Node<K, V> {
+                next = node
+                node = nextSmaller(node)
+                return next!!
+            }
+        })
     }
 
-
-
-    override fun display(node: Node<K,V>?, n:Int){
-        if (node!!.right != null){
-            display(node.right,n+1)
+    private fun nextSmaller(node: Node<K, V>?): Node<K, V>?{
+        var smaller = node ?: return null
+        when {
+            (smaller.left != null) -> {
+                return searchMax(smaller.left)
+            }
+            (smaller == smaller.parent?.left) -> {
+                while (smaller == smaller?.parent?.left) {
+                    smaller = smaller?.parent!!
+                }
+            }
         }
-        var i:Int=0
-        while (i<n){
-            print("    |")
-            i++
-        }
-        if (node.color) {
-            print(27.toChar()+"[31m${node.key}"+27.toChar()+"[0m")
-        } else {
-            print(27.toChar()+"[30m${node.key}"+27.toChar()+"[0m")
-        }
-        println()
-
-        if(node.left!=null){
-            display(node.left,n+1)
-        }
+        return smaller.parent
     }
 }
 
 fun main(array: Array<String>) {
     //var bst=BinarySearchTree()
-    var bst = RedBlackTree<Int, String?>()
+    val bst = RedBlackTree<Int, String>()
 /*    var flagInput: Boolean=true
     try{
         line = File("C:\\Users\\Алексей\\Desktop\\Tree\\src\\input.txt").readText()
@@ -312,8 +402,8 @@ fun main(array: Array<String>) {
     }*/
     //var input = readLine()
     var flagKV: Boolean = false
-    var key: Int = 0
-    var value: String?
+    var key: Int? = 0
+    var value: String? = null
     while (true) {
         val input = readLine()
         when (input) {
@@ -325,26 +415,27 @@ fun main(array: Array<String>) {
             "-p" -> {
                 //bst.display(bst.root,0)
                 for (i in bst) {
-                    logic<Int, String>().print(i)
+                    logic<Int, String>().display(i)
                 }
             }
             "-d" -> {
                 println("Key to delete: ")
-                bst.delete(readLine()!!.toInt())
+                bst.delete(bst.search(bst.root, readLine()!!.toInt())!!)
             }
             "-q" -> return
             else -> {
                 if (flagKV) {
-                    value = input
-                    val newNode = Node(key, value)
+                    if (input != null) value = input.toString()
+                    val newNode = Node(key!!, value!!)
                     bst.insert(newNode)
                     flagKV = false
                 } else {
-                    key = input?.toInt()!!
-                    flagKV = true
+                    key = input?.toIntOrNull()
+                    if (key != null) flagKV = true
                 }
 
             }
+
         }
     }
 }
