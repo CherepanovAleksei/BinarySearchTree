@@ -8,7 +8,7 @@
 
 package BinaryTree
 
-class BinNode<K: Comparable<K>, V>(var key:K,var value:V,var color:Boolean=false){
+class BinNode<K: Comparable<K>, V>(var key:K,var value:V){
     var left: BinNode<K,V>? = null
     var right: BinNode<K,V>? = null
     var parent: BinNode<K,V>? = null
