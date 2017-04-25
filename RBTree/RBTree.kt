@@ -10,7 +10,7 @@ package RBTree
 import Interfaces.Tree
 
 class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<RBNode<K, V>>{
-    private var root: RBNode<K,V>? = null
+    /*private*/var root: RBNode<K,V>? = null
 
     override fun insert(key:K,value:V){
         val newNode = RBNode(key, value)
@@ -30,9 +30,7 @@ class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<RBNode<K, V>>{
         }
         newNode.parent=y
         if(y==null) {
-
             this.root=newNode
-            //this.root!!.parent=nil
         }
         else if(newNode.key<y.key){
             y.left=newNode
@@ -40,6 +38,7 @@ class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<RBNode<K, V>>{
         else{
             y.right=newNode
         }
+
         newNode.color=true
         newNode.right=null
         newNode.left=null
@@ -59,11 +58,11 @@ class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<RBNode<K, V>>{
                     z=z.parent!!.parent
                 }else if(z== z.parent!!.right){
                     z=z.parent
-                    leftRotate(z)
+                    leftRotate(z!!)
                 }else if(z==z.parent!!.left) {
                     z.parent!!.color = false
                     z.parent!!.parent!!.color = true
-                    rightRotate(z.parent!!.parent)
+                    rightRotate(z.parent!!.parent!!)
                 }
             }else{
                 y= z.parent?.parent?.left
@@ -74,140 +73,174 @@ class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<RBNode<K, V>>{
                     z=z.parent!!.parent
                 }else if(z== z.parent!!.left){
                     z=z.parent
-                    rightRotate(z)
+                    rightRotate(z!!)
                 }else if(z== z.parent!!.right) {
                     z.parent!!.color = false
                     z.parent?.parent?.color = true
-                    leftRotate(z.parent!!.parent)
+                    leftRotate(z.parent!!.parent!!)
                 }
             }
         }
         this.root!!.color=false
     }
 
-    override fun delete(key:K) {
-        deleteNode(searchNode(key) ?:return)
-    }
-    fun deleteNode(delNode: RBNode<K, V>) {
-        val x = searchMax(delNode.left)
+    override fun delete(key: K) {
 
-        when {
-            ((delNode.right != null) && (delNode.left != null))
-            -> {
-                delNode.key = x!!.key
-                delNode.value = x.value
-                deleteNode(x)
-                return
-            }
-            ((delNode == this.root) && delNode.isLeaf())
-            -> {
-                this.root = null
-                return
-            }
-            (delNode.color && delNode.isLeaf())
-            -> {
-                if (delNode == delNode.parent!!.left) {
-                    delNode.parent!!.left = null
-                }else{
-                    delNode.parent!!.right = null
-                }
-                return
-            }
-            (!delNode.color && delNode.left != null && delNode.left!!.color)
-            -> {
-                delNode.key = delNode.left!!.key
-                delNode.value = delNode.left!!.value
-                delNode.left = null
-                return
-            }
-            (!delNode.color && delNode.right != null && delNode.right!!.color)
-            -> {
-                delNode.key = delNode.right!!.key
-                delNode.value = delNode.right!!.value
-                delNode.right = null
-                return
-            }
-            else
-            -> {
-                deleteCase1(delNode)
-            }
+    val node = searchNode(key, root) ?: return
+    val min = searchMin(node.right)
+
+    when {
+        ((node.right != null) && (node.left != null))
+        -> {
+            val nextKey = min!!.key
+            val nextValue = min.value
+            delete(min.key)
+            node.key = nextKey
+            node.value = nextValue
         }
-        if (delNode == delNode.parent!!.left) {
-            delNode.parent!!.left = null
-        }else{
-            delNode.parent!!.right = null
+        ((node == root) && (node.right == null && node.left == null))
+        -> {
+            root = null
+            return
+        }
+        (node.color == true && node.right == null && node.left == null)
+        -> {
+            if (node.key < node.parent!!.key) {
+                node.parent!!.left = null
+            } else {
+                node.parent!!.right = null
+            }
+            return
+        }
+        (node.color == false && ((node.left != null) && (node.left!!.color == true)))
+        -> {
+            node.key = node.left!!.key
+            node.value = node.left!!.value
+            node.left = null
+            return
+        }
+        (node.color == false && (node.right != null) && (node.right!!.color == true))
+        -> {
+            node.key = node.right!!.key
+            node.value = node.right!!.value
+            node.right = null
+            return
+        }
+        else
+        -> {
+            deleteCase1(node)
         }
     }
 
-    private fun deleteCase1(node: RBNode<K, V>) {
-        if (node.parent != null) deleteCase2(node)
+    if (node.key == key) {
+        if (node.key < node.parent!!.key) {
+            node.parent!!.left = null
+        } else {
+            node.parent!!.right = null
+        }
     }
+    return
+}
 
-    private fun deleteCase2(node: RBNode<K, V>) {
+    private fun deleteCase1(node: RBNode<K,V>) {
+        if (node == root) {
+            node.color = false
+            return
+        }
+
         val brother = node.brother()
 
         if (brother!!.color) {
-            when (node) {
-                node.parent!!.left -> leftRotate(node.parent!!)
-                node.parent!!.right -> rightRotate(node.parent!!)
+            node.parent!!.recoloring()
+            brother.recoloring()
+            if (node == node.parent!!.left) {
+                leftRotate(node.parent!!)
+            } else {
+                rightRotate(node.parent!!)
             }
 
-            if (root == node.parent)
-                root = node.parent!!.parent
+            deleteCase1(node)
+            return
         }
-        deleteCase3(node)
+
+        deleteCase2(node)
+
     }
 
-    private fun deleteCase3(node: RBNode<K, V>) {
+
+    private fun deleteCase2(node: RBNode<K,V>) {
         val brother = node.brother()
 
-        if (((brother!!.left == null) || !brother.left!!.color) && ((brother.right == null) || !brother.right!!.color) && !brother.color && !node.parent!!.color) {
-            brother.color = true
+        if (((brother!!.left == null) || !brother.left!!.color)
+                && ((brother.right == null) || !brother.right!!.color))
+        {
+            node.color = false
+            brother.recoloring()
+            if (node.parent!!.color == true) {
+                node.parent!!.recoloring()
+                return
+            }
             deleteCase1(node.parent!!)
+            return
         }
-        else {
+
+        if (node == node.parent!!.left) {
+            deleteCase3(node)
+        } else {
             deleteCase4(node)
         }
     }
 
-    private fun deleteCase4(node: RBNode<K, V>) {
+    private fun deleteCase3(node: RBNode<K,V>) {
         val brother = node.brother()
 
-        if (((brother!!.left == null) || !brother.left!!.color) && ((brother.right == null) || !brother.right!!.color) && !brother.color && node.parent!!.color) {
-            brother.color = true
+        if ((brother!!.right == null) || brother.right!!.color == false) {
+            brother.recoloring()
+            brother.left!!.recoloring()
+            rightRotate(brother)
+            deleteCase1(node)
+            return
+        }
+        deleteCase3_2(node)
+    }
+
+    private fun deleteCase4(node: RBNode<K,V>) {
+        val brother = node.brother()
+
+        if ((brother!!.left == null) || brother.left!!.color == false) {
+            brother.recoloring()
+            brother.right!!.recoloring()
+            leftRotate(brother)
+            deleteCase1(node)
+            return
+        }
+        deleteCase4_2(node)
+    }
+
+    private fun deleteCase3_2(node: RBNode<K,V>) {
+        val brother = node.brother()
+
+        if ((brother!!.right != null) && brother.right!!.color == true) {
+            brother.color = node.parent!!.color
+            node.color = false
             node.parent!!.color = false
+            brother.right!!.color = false
+            leftRotate(node.parent!!)
+            return
         }
-        else deleteCase5(node)
     }
 
-    private fun deleteCase5(node: RBNode<K, V>) {
+    private fun deleteCase4_2(node: RBNode<K,V>) {
         val brother = node.brother()
 
-        if (brother?.color == false) {
-            if (brother.left?.color == true && (brother.right == null || !brother.right!!.color) && node == node.parent?.left) {
-                rightRotate(brother)
-            }
-            else if (brother.right?.color == true && (brother.left == null || !brother.left!!.color) && node == node.parent?.right) {
-                leftRotate(brother)
-            }
+        if ((brother!!.left != null) && brother.left!!.color == true) {
+            brother.color = node.parent!!.color
+            node.color = false
+            node.parent!!.color = false
+            brother.left!!.color = false
+            rightRotate(node.parent!!)
+            return
         }
-        deleteCase6(node)
-    }
-
-    private fun deleteCase6(node: RBNode<K, V>) {
-        val brother = node.brother()
-
-        if (node == node.parent!!.left) {
-            brother?.right?.color = false
-            leftRotate(node.parent)
-        }
-        else {
-            brother?.left?.color = false
-            rightRotate(node.parent)
-        }
-
-        if (root == node.parent)
-            root = node.parent!!.parent
     }
 
     private fun leftRotate(x: RBNode<K,V>?){
@@ -247,13 +280,12 @@ class RedBlackTree<K:Comparable<K>,V>:Tree<K,V>, Iterable<RBNode<K, V>>{
     }
 
     override fun search(key: K)=searchNode(key)?.value
-    private fun searchNode(key: K, node: RBNode<K,V>?=root): RBNode<K,V>? {
+    /*private*/fun searchNode(key: K, node: RBNode<K,V>?=root): RBNode<K,V>? {
         if(node==null) return null
         if(key == node.key)return node
         if(key < node.key) return searchNode(key, node.left)
         else return searchNode(key, node.right)
     }
-
 
     private fun searchMax(node: RBNode<K, V>?=root): RBNode<K, V>? {
         var max = node

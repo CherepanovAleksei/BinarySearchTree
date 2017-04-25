@@ -17,7 +17,7 @@ class BNode<K: Comparable<K>> (var isLeaf: Boolean = true) {
         val splitNode = this.children[splitKey]
         val newNode = BNode<K>(splitNode.isLeaf)
 
-        for (j in 0..deg - 2) {
+        for (i in 0..deg - 2) {
             newNode.keys.add(splitNode.keys[deg])
             splitNode.keys.removeAt(deg)
         }

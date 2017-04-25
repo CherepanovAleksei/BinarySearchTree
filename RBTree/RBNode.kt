@@ -8,7 +8,7 @@
 
 package RBTree
 
-class RBNode<K: Comparable<K>, V>(var key:K,var value:V,var color:Boolean=false){
+class RBNode<K: Comparable<K>, V>(var key:K,var value:V,var color: Boolean = true){
     var left: RBNode<K,V>? = null
     var right: RBNode<K,V>? = null
     var parent: RBNode<K,V>? = null
@@ -29,4 +29,9 @@ class RBNode<K: Comparable<K>, V>(var key:K,var value:V,var color:Boolean=false)
         if (this == this.parent?.left) return this.parent!!.right
         return this.parent?.left
     }
+
+    fun recoloring() {
+        this.color = this.color == false
+    }
+
 }

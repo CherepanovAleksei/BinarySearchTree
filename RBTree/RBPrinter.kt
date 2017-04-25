@@ -1,8 +1,13 @@
+/**
+ *
+ * by Cherepanov Aleksei (PI-171)
+ *
+ * mrneumann888@gmail.com
+ *
+ **/
+
 package RBTree
 
-/**
- * Created by Алексей on 12.04.2017.
- */
 class logic<K: Comparable<K>, V> {
     fun display(node: RBNode<K, V>) {
         for (i in 1..node.height()) print("    |")
