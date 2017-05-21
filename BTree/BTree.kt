@@ -53,8 +53,7 @@ class BTree<K: Comparable<K>> (val deg: Int): Iterable<BNode<K>> {
     private fun deleteRecursive(key: K, node: BNode<K>) {
         var count = 0
         while (count < node.keys.size && key > node.keys[count]) count++
-
-        if (node.keys[count] == key) {
+        if (node.keys.size > count && node.keys[count] == key) {
             if ((node.isLeaf)) {
                 node.keys.removeAt(count)
             } else if (node.children[count].keys.size > deg - 1) {
