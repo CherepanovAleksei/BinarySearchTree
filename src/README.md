@@ -4,7 +4,7 @@ The following tables show approximate amount of time spent on tree operations. A
 
 ## Binary search tree
 
-| Elements | Queue Insertion | Queue Search | Random Insertion | Random Search |
+| Elements | Queue Insert | Queue Search | Random Insert | Random Search |
 |:--------:|:---------------:|:-----------------:|:----------------:|:-------------:|
 | 100      |       0.014        |         0.002         |        0.017        |       0.002       |
 | 1000     |       0.028        |         0.12         |         0.014       |       0.008       |
@@ -16,7 +16,7 @@ The following tables show approximate amount of time spent on tree operations. A
 
 ## Red-black tree
 
-| Elements | Queue Insertion | Queue Search | Random Insertion | Random Search |
+| Elements | Queue Insert | Queue Search | Random Insert | Random Search |
 |:--------:|:--------------------:|:-----------------:|:----------------:|:-------------:|
 | 100      |          0.016         |         0.001         |         0.12        |       0.002       |
 | 1000     |          0.026          |         0.004         |        0.016        |       0.01       |
@@ -30,7 +30,7 @@ The following tables show approximate amount of time spent on tree operations. A
 
 t = 100
 
-| Elements | Queue Insertion | Queue Search | Random Insertion | Random Search |
+| Elements | Queue Insert | Queue Search | Random Insert | Random Search |
 |:--------:|:--------------------:|:-----------------:|:----------------:|:-------------:|
 | 100      |          0.018          |         0.004         |        0.026        |        0.003      |
 | 1000     |          0.015          |         0.016         |        0.012        |       0.028       |
