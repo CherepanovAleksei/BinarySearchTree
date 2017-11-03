@@ -1,5 +1,6 @@
 # BinarySearchTree
-# Performance analysis
+Binary, RedBlack and B-tree realization with Unit-tests.
+## Performance analysis
 The following tables show approximate amount of time spent on tree operations. All tests were performed using JUnit 5 testing framework from EqualTree.kt -Test. *The time is shown in seconds*.
 
 ## Binary search tree
